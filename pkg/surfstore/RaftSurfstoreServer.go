@@ -2,6 +2,7 @@ package surfstore
 
 import (
 	context "context"
+	// "fmt"
 	"math"
 	"sync"
 	"time"
@@ -39,8 +40,8 @@ type RaftSurfstore struct {
 
 func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty) (*FileInfoMap, error) {
 	// Only retrieve the map
-	s.me.Lock()
-	defer s.me.Unlock()
+	//s.me.Lock()
+	//defer s.me.Unlock()
 	//fmt.Println("lllaaaaa", m.FileMetaMap)
 	return &FileInfoMap{
 		FileInfoMap: s.metaStore.FileMetaMap,
@@ -49,8 +50,8 @@ func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty
 }
 
 func (s *RaftSurfstore) GetBlockStoreAddr(ctx context.Context, empty *emptypb.Empty) (*BlockStoreAddr, error) {
-	s.me.Lock()
-	defer s.me.Unlock()
+	//s.me.Lock()
+	//defer s.me.Unlock()
 	return &BlockStoreAddr{Addr: s.metaStore.BlockStoreAddr}, nil
 }
 
@@ -60,6 +61,7 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 		FileMetaData: filemeta,
 	}
 	s.log = append(s.log, &op)
+	//fmt.Println("=================s.log", s.log)
 	committed := make(chan bool)
 	s.pendingCommits = append(s.pendingCommits, committed)
 
@@ -144,7 +146,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 		MatchedIndex: -1,
 	}
 
-	if input.Term > s.term {
+	if (*input).Term > s.term {
 		s.term = input.Term
 	}
 

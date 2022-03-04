@@ -16,6 +16,8 @@ import (
 /*
 Implement the logic for a client syncing with the server here.
 */
+var SURF_CLIENT = "yunshu"
+
 func ClientSync(client RPCClient) {
 	//panic("todo")
 	//var blockStoreAddr string
