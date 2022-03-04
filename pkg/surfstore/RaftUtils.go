@@ -2,14 +2,15 @@ package surfstore
 
 import (
 	"bufio"
-	//	"google.golang.org/grpc"
 	"io"
 	"log"
-	//	"net"
+	"net"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
+
+	"google.golang.org/grpc"
 )
 
 func LoadRaftConfigFile(filename string) (ipList []string) {
@@ -65,7 +66,15 @@ func NewRaftServer(id int64, ips []string, blockStoreAddr string) (*RaftSurfstor
 }
 
 // TODO Start up the Raft server and any services here
+// TODO Start up the Raft server and any services here
 func ServeRaftServer(server *RaftSurfstore) error {
-	panic("todo")
-	return nil
+	s := grpc.NewServer()
+	RegisterRaftSurfstoreServer(s, server)
+
+	l, e := net.Listen("tcp", server.ip)
+	if e != nil {
+		return e
+	}
+
+	return s.Serve(l)
 }
