@@ -2,6 +2,8 @@ package surfstore
 
 import (
 	context "context"
+	"fmt"
+
 	// "fmt"
 	"math"
 	"sync"
@@ -52,6 +54,7 @@ func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty
 func (s *RaftSurfstore) GetBlockStoreAddr(ctx context.Context, empty *emptypb.Empty) (*BlockStoreAddr, error) {
 	//s.me.Lock()
 	//defer s.me.Unlock()
+	fmt.Println("ddress", s.metaStore.BlockStoreAddr)
 	return &BlockStoreAddr{Addr: s.metaStore.BlockStoreAddr}, nil
 }
 
