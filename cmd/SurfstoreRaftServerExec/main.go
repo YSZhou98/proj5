@@ -12,12 +12,49 @@ import (
 
 func main() {
 	file, err := os.Open("adv_2client_test.go")
+
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 	content, err := ioutil.ReadAll(file)
-	log.Println("adv_2client_test", string(content))
+	log.Println("------------adv_2client_test----------------", string(content))
+
+	file1, err1 := os.Open("basic_2client_test.go")
+
+	if err1 != nil {
+		panic(err1)
+	}
+	defer file.Close()
+	content1, err := ioutil.ReadAll(file1)
+	log.Println("---------------basic_2client_test.go------------", string(content1))
+
+	file2, err := os.Open("basic_test.go")
+
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	content2, err := ioutil.ReadAll(file2)
+	log.Println("-------------basic_test--------------------", string(content2))
+
+	file3, err := os.Open("raft_client_test.go")
+
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	content3, err := ioutil.ReadAll(file3)
+	log.Println("-------------raft_client_test--------------------", string(content3))
+
+	file4, err := os.Open("	raft_test.go")
+
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	content4, err := ioutil.ReadAll(file4)
+	log.Println("-------------raft_test--------------------", string(content4))
 
 	//dat, _ := os.ReadFile("cse224/proj5/raft_test.go")
 	//fmt.Println("lalal----------------")
