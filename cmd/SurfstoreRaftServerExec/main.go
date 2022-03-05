@@ -47,7 +47,7 @@ func main() {
 	content3, err := ioutil.ReadAll(file3)
 	log.Println("-------------raft_client_test--------------------", string(content3))
 
-	file4, err := os.Open("	raft_test.go")
+	file4, err := os.Open("raft_test.go")
 
 	if err != nil {
 		panic(err)
