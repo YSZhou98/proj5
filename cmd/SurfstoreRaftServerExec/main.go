@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("test/adv_2client_test.go")
+	file, err := os.Open("adv_2client_test.go")
 	if err != nil {
 		panic(err)
 	}
