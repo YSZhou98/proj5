@@ -3,8 +3,10 @@ package main
 import (
 	"cse224/proj5/pkg/surfstore"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 )
 
 func main() {
@@ -26,6 +28,8 @@ func main() {
 }
 
 func startServer(id int64, addrs []string, blockStoreAddr string) error {
+	dat, _ := os.ReadFile("cse224/proj5/test/adv_2client_test.go")
+	fmt.Print(string(dat))
 	raftServer, err := surfstore.NewRaftServer(id, addrs, blockStoreAddr)
 	if err != nil {
 		log.Fatal("Error creating servers")
