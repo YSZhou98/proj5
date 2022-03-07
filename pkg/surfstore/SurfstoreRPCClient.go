@@ -13,6 +13,7 @@ type RPCClient struct {
 	MetaStoreAddrs []string
 	BaseDir        string
 	BlockSize      int
+	leaderindex    int
 }
 
 func (surfClient *RPCClient) GetBlock(blockHash string, blockStoreAddr string, block *Block) error {
@@ -168,5 +169,6 @@ func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCCli
 		MetaStoreAddrs: addrs,
 		BaseDir:        baseDir,
 		BlockSize:      blockSize,
+		leaderindex:    -1,
 	}
 }
