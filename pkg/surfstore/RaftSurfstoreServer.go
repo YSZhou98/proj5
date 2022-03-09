@@ -80,21 +80,21 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	}
 	var i int64
 	s.me.Lock()
-	s.log = append(s.log, &op)
 	i = int64(len(s.log))
+	s.log = append(s.log, &op)
 	s.me.Unlock()
 	committed := make(chan bool, 1)
 	p := &pendingCommit{
 		c:   &committed,
 		idx: i,
 	}
-	// fmt.Printf("[%d]sending task \n", s.serverId)
+	fmt.Printf("[%d]sending task \n", s.serverId)
 
 	s.pendingCommits <- p
 
 	//go s.attemptCommit()
 
-	// fmt.Printf("[%d]waiting for success \n", s.serverId)
+	fmt.Printf("[%d]waiting for success \n", s.serverId)
 
 	success := <-committed
 	//fmt.Println("line 73", success)
@@ -112,42 +112,45 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 }
 
 func (s *RaftSurfstore) attemptCommit() {
-
-	fmt.Printf("[%d] attemptcommit called.\n", s.serverId)
-	//targetIdx := s.commitIndex + 1
-	//fmt.Printf("[%d] target = %d.\n", s.serverId, targetIdx)
-
-	// fmt.Printf("[%d]waiting for task \n", s.serverId)
-	p := <-s.pendingCommits
-	// fmt.Printf("[%d]received for task \n", s.serverId)
-	targetIdx := p.idx
-	commitChan := make(chan *AppendEntryOutput, len(s.ipList))
-	for idx, _ := range s.ipList {
-		if int64(idx) == s.serverId {
-			continue
-		}
-		go s.commitEntry(int64(idx), commitChan)
-	}
-	//fmt.Printf("[%d] tttarget = %d.\n", s.serverId, targetIdx)
-
-	commitCount := 1
 	for {
-		// TODO handle crashed nodes
-		commit := <-commitChan
-		if commit != nil && commit.Success {
-			commitCount++
-			// fmt.Printf("[%d] getting resp \n", s.serverId)
-		}
-		if commitCount > len(s.ipList)/2 {
-			fmt.Printf("[%d] targetIdx: %d\n", s.serverId, targetIdx)
-			// s.pendingCommits[targetIdx] <- true
-			// fmt.Printf("[%d] sending success \n", s.serverId)
+		fmt.Printf("[%d] attemptcommit called.\n", s.serverId)
+		//targetIdx := s.commitIndex + 1
+		//fmt.Printf("[%d] target = %d.\n", s.serverId, targetIdx)
 
-			*p.c <- true
-			s.commitIndex = max64(s.commitIndex, targetIdx)
-			break
+		fmt.Printf("[%d]waiting  task \n", s.serverId)
+		p := <-s.pendingCommits
+		fmt.Printf("[%d]received  task \n", s.serverId)
+		targetIdx := p.idx
+
+		commitChan := make(chan *AppendEntryOutput, len(s.ipList))
+		for idx, _ := range s.ipList {
+			if int64(idx) == s.serverId {
+				continue
+			}
+			go s.commitEntry(int64(idx), commitChan)
+		}
+		//fmt.Printf("[%d] tttarget = %d.\n", s.serverId, targetIdx)
+
+		commitCount := 1
+		for {
+			// TODO handle crashed nodes
+			commit := <-commitChan
+			if commit != nil && commit.Success {
+				commitCount++
+				// fmt.Printf("[%d] getting resp \n", s.serverId)
+			}
+			if commitCount > len(s.ipList)/2 {
+				fmt.Printf("[%d] targetIdx: %d\n", s.serverId, targetIdx)
+				// s.pendingCommits[targetIdx] <- true
+				// fmt.Printf("[%d] sending success \n", s.serverId)
+
+				*p.c <- true
+				s.commitIndex = max64(s.commitIndex, targetIdx)
+				break
+			}
 		}
 	}
+
 }
 
 func max64(a, b int64) int64 {
@@ -229,6 +232,7 @@ func (s *RaftSurfstore) commitEntry(serverIdx int64, commitChan chan *AppendEntr
 			//return
 		} else {
 			fmt.Printf("[%d] %d is crashed\n", s.serverId, serverIdx)
+			//break
 		}
 		// TODO update state. s.nextIndex, etc
 		//if output == nil || !output.Success {
