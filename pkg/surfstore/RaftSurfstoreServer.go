@@ -102,19 +102,19 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 		c:   &committed,
 		idx: i,
 	}
-	fmt.Printf("[%d]sending task \n", s.serverId)
+	//fmt.Printf("[%d]sending task \n", s.serverId)
 
 	s.pendingCommits <- p
 
 	//go s.attemptCommit()
 
-	fmt.Printf("[%d]waiting for success \n", s.serverId)
+	//fmt.Printf("[%d]waiting for success \n", s.serverId)
 
 	success := <-committed
 	//fmt.Println("line 73", success)
 	//time.Sleep(time.Millisecond * 2000)
 	if success {
-		fmt.Printf("[%d] commite successful, index: %d", s.serverId, s.commitIndex)
+		//fmt.Printf("[%d] commite successful, index: %d", s.serverId, s.commitIndex)
 
 		return s.metaStore.UpdateFile(ctx, filemeta)
 	}
@@ -127,13 +127,13 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 
 func (s *RaftSurfstore) attemptCommit() {
 	for {
-		fmt.Printf("[%d] attemptcommit called.\n", s.serverId)
+		//fmt.Printf("[%d] attemptcommit called.\n", s.serverId)
 		//targetIdx := s.commitIndex + 1
 		//fmt.Printf("[%d] target = %d.\n", s.serverId, targetIdx)
 
-		fmt.Printf("[%d]waiting  task \n", s.serverId)
+		//fmt.Printf("[%d]waiting  task \n", s.serverId)
 		p := <-s.pendingCommits
-		fmt.Printf("[%d]received  task \n", s.serverId)
+		//fmt.Printf("[%d]received  task \n", s.serverId)
 		targetIdx := p.idx
 
 		commitChan := make(chan *AppendEntryOutput, len(s.ipList))
@@ -154,7 +154,7 @@ func (s *RaftSurfstore) attemptCommit() {
 				// fmt.Printf("[%d] getting resp \n", s.serverId)
 			}
 			if commitCount > len(s.ipList)/2 {
-				fmt.Printf("[%d] targetIdx: %d\n", s.serverId, targetIdx)
+				//fmt.Printf("[%d] targetIdx: %d\n", s.serverId, targetIdx)
 				// s.pendingCommits[targetIdx] <- true
 				// fmt.Printf("[%d] sending success \n", s.serverId)
 
@@ -190,10 +190,10 @@ func (s *RaftSurfstore) commitEntry(serverIdx int64, commitChan chan *AppendEntr
 	s.isLeaderMutex.Unlock()
 
 	for {
-		fmt.Printf("[%d] checking!", s.serverId)
+		//fmt.Printf("[%d] checking!", s.serverId)
 		s.isCrashedMutex.Lock()
 		if s.isCrashed {
-			fmt.Printf("[%d] oh i am crashed!", s.serverId)
+			//fmt.Printf("[%d] oh i am crashed!", s.serverId)
 			s.isCrashedMutex.Unlock()
 			return
 		}
@@ -202,7 +202,7 @@ func (s *RaftSurfstore) commitEntry(serverIdx int64, commitChan chan *AppendEntr
 		addr := s.ipList[serverIdx]
 		conn, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err != nil {
-			fmt.Printf("dialing err: %s\n", err)
+			//fmt.Printf("dialing err: %s\n", err)
 			return
 		}
 		client := NewRaftSurfstoreClient(conn)
@@ -218,7 +218,7 @@ func (s *RaftSurfstore) commitEntry(serverIdx int64, commitChan chan *AppendEntr
 
 		s.isCrashedMutex.Lock()
 		if s.isCrashed {
-			fmt.Printf("[%d] oh i am crashed!", s.serverId)
+			//fmt.Printf("[%d] oh i am crashed!", s.serverId)
 			s.isCrashedMutex.Unlock()
 			return
 		}
@@ -234,18 +234,18 @@ func (s *RaftSurfstore) commitEntry(serverIdx int64, commitChan chan *AppendEntr
 
 			s.isCrashedMutex.Lock()
 			if s.isCrashed {
-				fmt.Printf("[%d] oh i am crashed!", s.serverId)
+				//fmt.Printf("[%d] oh i am crashed!", s.serverId)
 				s.isCrashedMutex.Unlock()
 				return
 			}
 			s.isCrashedMutex.Unlock()
 
 			commitChan <- output
-			fmt.Printf("[%d] oh, success from %d\n", s.serverId, serverIdx)
+			//fmt.Printf("[%d] oh, success from %d\n", s.serverId, serverIdx)
 			break
 			//return
 		} else {
-			fmt.Printf("[%d] %d is crashed\n", s.serverId, serverIdx)
+			//fmt.Printf("[%d] %d is crashed\n", s.serverId, serverIdx)
 			//break
 		}
 		// TODO update state. s.nextIndex, etc
@@ -272,7 +272,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 		return &AppendEntryOutput{Success: false, MatchedIndex: -1}, nil
 	}
 
-	fmt.Printf("[%d] called append entries.", s.serverId)
+	//fmt.Printf("[%d] called append entries.", s.serverId)
 
 	output := &AppendEntryOutput{
 		Success:      false,
@@ -281,13 +281,13 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 
 	//return output, nil
 	if input.Term > s.term {
-		fmt.Printf("[%d]here comes new leader.\n ", s.serverId)
+		//fmt.Printf("[%d]here comes new leader.\n ", s.serverId)
 		s.isLeader = false
 		s.term = input.Term
 	}
 	if input.PrevLogTerm == -3 {
 		s.me.Lock()
-		fmt.Println(s.serverId, input.Entries)
+		//fmt.Println(s.serverId, input.Entries)
 		s.log = input.Entries
 		s.me.Unlock()
 		output.Success = true
@@ -345,7 +345,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 
 // This should set the leader status and any related variables as if the node has just won an election
 func (s *RaftSurfstore) SetLeader(ctx context.Context, _ *emptypb.Empty) (*Success, error) {
-	fmt.Printf("[%d] I am the leader.\n", s.serverId)
+	//fmt.Printf("[%d] I am the leader.\n", s.serverId)
 
 	s.term++
 	s.isLeaderMutex.Lock()
@@ -360,7 +360,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	if !s.isLeader {
 		return &Success{Flag: false}, fmt.Errorf("Server is not the leader")
 	}
-	fmt.Printf("[%d] sendin heartbeat.\n", s.serverId)
+	//fmt.Printf("[%d] sendin heartbeat.\n", s.serverId)
 
 	count := 0
 
@@ -371,7 +371,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 
 		conn, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err != nil {
-			fmt.Printf("[%d]err when sending heartbeat:%s\n", s.serverId, err)
+			//fmt.Printf("[%d]err when sending heartbeat:%s\n", s.serverId, err)
 			return nil, err
 		}
 		client := NewRaftSurfstoreClient(conn)
@@ -416,7 +416,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 }
 
 func (s *RaftSurfstore) Crash(ctx context.Context, _ *emptypb.Empty) (*Success, error) {
-	fmt.Printf("[%d] i crashed.", s.serverId)
+	//fmt.Printf("[%d] i crashed.", s.serverId)
 	s.isCrashedMutex.Lock()
 	s.isCrashed = true
 	s.isCrashedMutex.Unlock()
@@ -429,7 +429,7 @@ func (s *RaftSurfstore) Crash(ctx context.Context, _ *emptypb.Empty) (*Success, 
 }
 
 func (s *RaftSurfstore) Restore(ctx context.Context, _ *emptypb.Empty) (*Success, error) {
-	fmt.Printf("[%d]I'm back\n", s.serverId)
+	//fmt.Printf("[%d]I'm back\n", s.serverId)
 	s.isCrashedMutex.Lock()
 	s.isCrashed = false
 	s.notCrashedCond.Broadcast()
