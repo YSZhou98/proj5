@@ -80,6 +80,7 @@ func ServeRaftServer(server *RaftSurfstore) error {
 	if e != nil {
 		return e
 	}
+	go server.attemptCommit()
 
 	return s.Serve(l)
 }
