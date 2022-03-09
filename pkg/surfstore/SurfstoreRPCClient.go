@@ -132,7 +132,7 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 	tem, err := c.UpdateFile(ctx, fileMetaData)
 	if err != nil && strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) {
 		conn.Close()
-		panic("panic")
+		//panic("panic")
 		return err
 	}
 	// if err == fmt.Errorf("not majority.") {
