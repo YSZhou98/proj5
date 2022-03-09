@@ -91,7 +91,7 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 		return nil, fmt.Errorf("not majority.")
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("not majority.")
 }
 
 func (s *RaftSurfstore) attemptCommit() {
@@ -344,7 +344,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 func (s *RaftSurfstore) Crash(ctx context.Context, _ *emptypb.Empty) (*Success, error) {
 	s.isCrashedMutex.Lock()
 	s.isCrashed = true
-	//s.log = make([]*UpdateOperation, 0)
+	s.log = make([]*UpdateOperation, 0)
 	s.isLeaderMutex.Lock()
 	s.isLeader = false
 	s.isLeaderMutex.Unlock()
