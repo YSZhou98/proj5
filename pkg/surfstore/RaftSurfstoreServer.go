@@ -55,6 +55,15 @@ func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty
 	s.me.Lock()
 	defer s.me.Unlock()
 	//fmt.Println("lllaaaaa", m.FileMetaMap)
+
+	success, _ := s.SendHeartbeat(ctx, empty)
+	if success != nil && !success.Flag {
+		return &FileInfoMap{
+			FileInfoMap: s.metaStore.FileMetaMap,
+		}, fmt.Errorf("majority crashed")
+	}
+	//}
+
 	return &FileInfoMap{
 		FileInfoMap: s.metaStore.FileMetaMap,
 	}, nil
@@ -64,6 +73,11 @@ func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty
 func (s *RaftSurfstore) GetBlockStoreAddr(ctx context.Context, empty *emptypb.Empty) (*BlockStoreAddr, error) {
 	s.me.Lock()
 	defer s.me.Unlock()
+	success, _ := s.SendHeartbeat(ctx, empty)
+	if success != nil && !success.Flag {
+		return &BlockStoreAddr{Addr: s.metaStore.BlockStoreAddr}, fmt.Errorf("majority crashed")
+	}
+
 	return &BlockStoreAddr{Addr: s.metaStore.BlockStoreAddr}, nil
 }
 
