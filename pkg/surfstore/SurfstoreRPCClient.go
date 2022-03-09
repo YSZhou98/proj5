@@ -179,16 +179,16 @@ func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCCli
 	leader := -1
 	//count := 0
 	for idx, addr := range addrs {
-		conn, err := grpc.Dial(addr, grpc.WithInsecure())
-		if err != nil {
-			//fmt.Println("error", idx, err)
-			panic("panic")
-		}
+		conn, _ := grpc.Dial(addr, grpc.WithInsecure())
+		// if err != nil {
+		// 	//fmt.Println("error", idx, err)
+		// 	panic("panic")
+		// }
 		client := NewRaftSurfstoreClient(conn)
-		state, err := client.GetInternalState(context.Background(), &emptypb.Empty{})
-		if err != nil {
-			panic("panic")
-		}
+		state, _ := client.GetInternalState(context.Background(), &emptypb.Empty{})
+		// if err != nil {
+		// 	panic("panic")
+		// }
 
 		if state.IsLeader {
 			leader = idx
