@@ -2,6 +2,7 @@ package surfstore
 
 import (
 	context "context"
+	"fmt"
 	"time"
 
 	grpc "google.golang.org/grpc"
@@ -87,77 +88,109 @@ func (surfClient *RPCClient) HasBlocks(blockHashesIn []string, blockStoreAddr st
 }
 
 func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileMetaData) error {
-	// connect to the server
-	conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
-	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return err
-	}
-	// perform the call
-	// perform the call
-	// c := NewMetaStoreClient(conn)
-	c := NewRaftSurfstoreClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	i := 0
+	for i < len(surfClient.MetaStoreAddrs) {
+		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
+		if err != nil {
+			return err
+		}
+		// perform the call
+		// perform the call
+		// c := NewMetaStoreClient(conn)
+		c := NewRaftSurfstoreClient(conn)
+		state, err := c.GetInternalState(context.Background(), &emptypb.Empty{})
+		if err != nil {
+			continue
+		}
+		if state.IsLeader {
+			fmt.Println("the server", i)
 
-	tem, err := c.GetFileInfoMap(ctx, &emptypb.Empty{})
-	//*serverFileInfoMap = tem.FileInfoMap
-
-	if err != nil {
-		conn.Close()
-		return err
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			tem, err := c.GetFileInfoMap(ctx, &emptypb.Empty{})
+			if err != nil {
+				panic("panic")
+				//return err
+			}
+			*serverFileInfoMap = tem.FileInfoMap
+			return conn.Close()
+		}
+		i += 1
 	}
-	*serverFileInfoMap = tem.FileInfoMap
-	// close the connection
-	return conn.Close()
+	return nil
 }
 
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int32) error {
 	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
-	// perform the call
-	// perform the call
-	// c := NewMetaStoreClient(conn)
-	c := NewRaftSurfstoreClient(conn)
+	//surfClient.
+	i := 0
+	fmt.Println("=======Update file==========", len(surfClient.MetaStoreAddrs))
+	for i < len(surfClient.MetaStoreAddrs) {
+		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
+		if err != nil {
+			return err
+		}
+		// perform the call
+		// perform the call
+		// c := NewMetaStoreClient(conn)
+		c := NewRaftSurfstoreClient(conn)
+		state, err := c.GetInternalState(context.Background(), &emptypb.Empty{})
+		if err != nil {
+			continue
+		}
+		if state.IsLeader {
+			fmt.Println("the server", i)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
 
-	tem, err := c.UpdateFile(ctx, fileMetaData)
-	if err != nil {
-		conn.Close()
-		return err
+			tem, err := c.UpdateFile(ctx, fileMetaData)
+			if err != nil {
+				conn.Close()
+				return err
+			}
+			latestVersion = &tem.Version
+			// close the connection
+			return conn.Close()
+
+		}
+		i += 1
 	}
-	latestVersion = &tem.Version
-	// close the connection
-	return conn.Close()
+	return fmt.Errorf("No server")
 }
 
 func (surfClient *RPCClient) GetBlockStoreAddr(blockStoreAddr *string) error {
 	// connect to the server
-	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
-	if err != nil {
-		return err
-	}
-	// c := NewMetaStoreClient(conn)
-	c := NewRaftSurfstoreClient(conn)
+	i := 0
+	for i < len(surfClient.MetaStoreAddrs) {
+		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
+		if err != nil {
+			return err
+		}
+		// perform the call
+		// perform the call
+		// c := NewMetaStoreClient(conn)
+		c := NewRaftSurfstoreClient(conn)
+		state, err := c.GetInternalState(context.Background(), &emptypb.Empty{})
+		if err != nil {
+			continue
+		}
+		if state.IsLeader {
+			fmt.Println("the server", i)
 
-	// perform the call
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	addr, err := c.GetBlockStoreAddr(ctx, &emptypb.Empty{})
-	if err != nil {
-		conn.Close()
-		return err
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			addr, err := c.GetBlockStoreAddr(ctx, &emptypb.Empty{})
+			if err != nil {
+				panic("panic")
+				//return err
+			}
+			*blockStoreAddr = addr.Addr
+			return conn.Close()
+		}
+		i += 1
 	}
-	*blockStoreAddr = addr.Addr
-
-	// close the connection
-	return conn.Close()
+	return nil
 }
 
 // This line guarantees all method for RPCClient are implemented
