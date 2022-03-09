@@ -115,7 +115,7 @@ func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileM
 }
 
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int32) error {
-	var ERR_SERVER_CRASHED = fmt.Errorf("not majority.")
+	var ERR_SERVER_CRASHED = fmt.Errorf("New version number is NOT one greater than current version number")
 	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
 	if err != nil {
