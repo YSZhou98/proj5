@@ -129,7 +129,7 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 	tem, err := c.UpdateFile(ctx, fileMetaData)
 	if err != nil {
 		conn.Close()
-		panic ("panic")
+		//panic("panic")
 		return err
 	}
 	latestVersion = &tem.Version
@@ -166,10 +166,29 @@ var _ ClientInterface = new(RPCClient)
 
 // Create an Surfstore RPC client
 func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCClient {
+	leader := -1
+	for idx, addr := range addrs {
+		conn, err := grpc.Dial(addr, grpc.WithInsecure())
+		if err != nil {
+			panic("panic")
+		}
+		client := NewRaftSurfstoreClient(conn)
+		state, err := client.GetInternalState(context.Background(), &emptypb.Empty{})
+		if err != nil {
+			panic("panic")
+		}
+		if state.IsLeader {
+			leader = idx
+		}
+
+	}
+	if leader == -1 {
+		panic("panic")
+	}
 	return RPCClient{
 		MetaStoreAddrs: addrs,
 		BaseDir:        baseDir,
 		BlockSize:      blockSize,
-		leaderindex:    -1,
+		leaderindex:    leader,
 	}
 }
