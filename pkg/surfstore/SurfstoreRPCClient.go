@@ -103,7 +103,7 @@ func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileM
 			continue
 		}
 		if state.IsLeader {
-			fmt.Println("the server", i)
+			//fmt.Println("the server", i)
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
@@ -124,7 +124,7 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	//surfClient.
 	i := 0
-	fmt.Println("=======Update file==========", len(surfClient.MetaStoreAddrs))
+	//fmt.Println("=======Update file==========", len(surfClient.MetaStoreAddrs))
 	for i < len(surfClient.MetaStoreAddrs) {
 		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
 		if err != nil {
@@ -139,7 +139,7 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 			continue
 		}
 		if state.IsLeader {
-			fmt.Println("the server", i)
+			//fmt.Println("the server", i)
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
@@ -176,7 +176,7 @@ func (surfClient *RPCClient) GetBlockStoreAddr(blockStoreAddr *string) error {
 			continue
 		}
 		if state.IsLeader {
-			fmt.Println("the server", i)
+			//fmt.Println("the server", i)
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
