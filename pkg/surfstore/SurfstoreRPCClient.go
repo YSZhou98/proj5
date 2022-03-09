@@ -2,6 +2,7 @@ package surfstore
 
 import (
 	context "context"
+	"fmt"
 	"time"
 
 	grpc "google.golang.org/grpc"
@@ -132,6 +133,12 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 		//panic("panic")
 		return err
 	}
+	if err == fmt.Errorf("not majority.") {
+		conn.Close()
+		panic("panic")
+		//return err
+	} 
+
 	latestVersion = &tem.Version
 	// close the connection
 	return conn.Close()
@@ -167,9 +174,11 @@ var _ ClientInterface = new(RPCClient)
 // Create an Surfstore RPC client
 func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCClient {
 	leader := -1
+	//count := 0
 	for idx, addr := range addrs {
 		conn, err := grpc.Dial(addr, grpc.WithInsecure())
 		if err != nil {
+			//fmt.Println("error", idx, err)
 			panic("panic")
 		}
 		client := NewRaftSurfstoreClient(conn)
@@ -177,6 +186,7 @@ func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCCli
 		if err != nil {
 			panic("panic")
 		}
+
 		if state.IsLeader {
 			leader = idx
 		}
