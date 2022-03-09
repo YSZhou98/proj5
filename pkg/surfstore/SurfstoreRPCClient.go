@@ -140,8 +140,9 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 	// 	panic("panic")
 	// 	//return err
 	// }
-
-	latestVersion = &tem.Version
+	if tem != nil {
+		latestVersion = &tem.Version
+	}
 	// close the connection
 	return conn.Close()
 }
