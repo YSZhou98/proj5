@@ -57,8 +57,9 @@ func NewRaftServer(id int64, ips []string, blockStoreAddr string) (*RaftSurfstor
 		ipList:   ips,
 		serverId: id,
 
-		commitIndex: -1,
-		lastApplied: -1,
+		pendingCommits: make(chan *pendingCommit, 2),
+		commitIndex:    -1,
+		lastApplied:    -1,
 
 		isLeader:       false,
 		term:           0,
@@ -80,7 +81,7 @@ func ServeRaftServer(server *RaftSurfstore) error {
 	if e != nil {
 		return e
 	}
-	//go server.attemptCommit()
+	go server.attemptCommit()
 
 	return s.Serve(l)
 }

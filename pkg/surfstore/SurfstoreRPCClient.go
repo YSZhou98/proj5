@@ -2,8 +2,6 @@ package surfstore
 
 import (
 	context "context"
-	"fmt"
-	"strings"
 	"time"
 
 	grpc "google.golang.org/grpc"
@@ -115,7 +113,6 @@ func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileM
 }
 
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int32) error {
-	var ERR_SERVER_CRASHED = fmt.Errorf("New version number is NOT one greater than current version number")
 	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
 	if err != nil {
@@ -130,19 +127,11 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 	defer cancel()
 
 	tem, err := c.UpdateFile(ctx, fileMetaData)
-	if err != nil && strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) {
+	if err != nil {
 		conn.Close()
-		//panic("panic")
 		return err
 	}
-	// if err == fmt.Errorf("not majority.") {
-	// 	conn.Close()
-	// 	panic("panic")
-	// 	//return err
-	// }
-	if tem != nil {
-		latestVersion = &tem.Version
-	}
+	latestVersion = &tem.Version
 	// close the connection
 	return conn.Close()
 }
@@ -176,32 +165,10 @@ var _ ClientInterface = new(RPCClient)
 
 // Create an Surfstore RPC client
 func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCClient {
-	leader := -1
-	//count := 0
-	for idx, addr := range addrs {
-		conn, _ := grpc.Dial(addr, grpc.WithInsecure())
-		// if err != nil {
-		// 	//fmt.Println("error", idx, err)
-		// 	panic("panic")
-		// }
-		client := NewRaftSurfstoreClient(conn)
-		state, _ := client.GetInternalState(context.Background(), &emptypb.Empty{})
-		// if err != nil {
-		// 	panic("panic")
-		// }
-
-		if state.IsLeader {
-			leader = idx
-		}
-
-	}
-	if leader == -1 {
-		panic("panic")
-	}
 	return RPCClient{
 		MetaStoreAddrs: addrs,
 		BaseDir:        baseDir,
 		BlockSize:      blockSize,
-		leaderindex:    leader,
+		leaderindex:    -1,
 	}
 }
