@@ -3,6 +3,7 @@ package surfstore
 import (
 	context "context"
 	"fmt"
+	"strings"
 	"time"
 
 	grpc "google.golang.org/grpc"
@@ -114,6 +115,7 @@ func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileM
 }
 
 func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersion *int32) error {
+	var ERR_SERVER_CRASHED = fmt.Errorf("not majority")
 	//conn, err := grpc.Dial(surfClient.MetaStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
 	if err != nil {
@@ -128,16 +130,16 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 	defer cancel()
 
 	tem, err := c.UpdateFile(ctx, fileMetaData)
-	if err != nil {
-		conn.Close()
-		//panic("panic")
-		return err
-	}
-	if err == fmt.Errorf("not majority.") {
+	if err != nil && strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) {
 		conn.Close()
 		panic("panic")
-		//return err
-	} 
+		return err
+	}
+	// if err == fmt.Errorf("not majority.") {
+	// 	conn.Close()
+	// 	panic("panic")
+	// 	//return err
+	// }
 
 	latestVersion = &tem.Version
 	// close the connection
